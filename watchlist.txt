@@ -1,0 +1,18 @@
+# Mega-Cap Tech
+MSFT
+AAPL
+GOOGL
+META
+AMZN
+NVDA
+TSLA
+
+# Finans
+JPM
+GS
+BRK-B
+
+# Sağlık
+JNJ
+UNH
+LLY
