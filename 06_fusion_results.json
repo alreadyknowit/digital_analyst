@@ -1,207 +1,237 @@
 {
-  "run_timestamp": "2026-09-20T16:34:53.669353",
+  "run_timestamp": "2026-09-20T16:50:58.023472",
   "tickers": [
-    "AAPL",
-    "MSFT",
-    "GOOGL",
-    "AMZN",
-    "NVDA",
-    "META"
+    "TSLA"
   ],
   "sector": "Technology",
   "feature_counts": {
     "technical": 10,
-    "correlation": 6,
+    "correlation": 0,
     "sentiment": 6,
     "macro": 21,
     "fundamental": 8
   },
-  "feature_total": 51,
+  "feature_total": 45,
   "ablation_results": [
     {
       "config": "01_technical_only",
-      "mape": 0.0018,
-      "val_mape": null,
-      "attn_weights": {},
+      "mape": 20.7627,
+      "val_mape": 21.5323,
+      "attn_weights": {
+        "technical": 1.0
+      },
       "total_features": 10,
       "fusion_method": "concat"
     },
     {
       "config": "01_technical_only",
-      "mape": 0.0018,
-      "val_mape": null,
-      "attn_weights": {},
+      "mape": 9.5358,
+      "val_mape": 9.4084,
+      "attn_weights": {
+        "technical": 1.0
+      },
       "total_features": 10,
       "fusion_method": "multi_head"
     },
     {
       "config": "02_tech_correlation",
-      "mape": 0.0009,
-      "val_mape": null,
+      "mape": 36.3974,
+      "val_mape": 37.1992,
       "attn_weights": {},
-      "total_features": 16,
+      "total_features": 10,
       "fusion_method": "concat"
     },
     {
       "config": "02_tech_correlation",
-      "mape": 0.0009,
-      "val_mape": null,
-      "attn_weights": {},
-      "total_features": 16,
+      "mape": 2.6505,
+      "val_mape": 2.6678,
+      "attn_weights": {
+        "technical": 1.0
+      },
+      "total_features": 10,
       "fusion_method": "multi_head"
     },
     {
       "config": "03_tech_sentiment",
-      "mape": 0.0009,
-      "val_mape": null,
-      "attn_weights": {},
+      "mape": 16.1331,
+      "val_mape": 15.7388,
+      "attn_weights": {
+        "technical": 0.5952263474464417,
+        "sentiment": 0.40477365255355835
+      },
       "total_features": 16,
       "fusion_method": "concat"
     },
     {
       "config": "03_tech_sentiment",
-      "mape": 0.0009,
-      "val_mape": null,
-      "attn_weights": {},
+      "mape": 21.1135,
+      "val_mape": 21.7736,
+      "attn_weights": {
+        "technical": 0.42245838046073914,
+        "sentiment": 0.5775416493415833
+      },
       "total_features": 16,
       "fusion_method": "multi_head"
     },
     {
       "config": "04_tech_macro",
-      "mape": 0.0016,
-      "val_mape": null,
-      "attn_weights": {},
+      "mape": 8.3585,
+      "val_mape": 8.3749,
+      "attn_weights": {
+        "technical": 0.3973097801208496,
+        "macro": 0.6026902198791504
+      },
       "total_features": 31,
       "fusion_method": "concat"
     },
     {
       "config": "04_tech_macro",
-      "mape": 0.0016,
-      "val_mape": null,
-      "attn_weights": {},
+      "mape": 11.9626,
+      "val_mape": 12.3312,
+      "attn_weights": {
+        "technical": 0.5428653359413147,
+        "macro": 0.4571346938610077
+      },
       "total_features": 31,
       "fusion_method": "multi_head"
     },
     {
       "config": "05_tech_fundamental",
-      "mape": 0.0004,
-      "val_mape": null,
-      "attn_weights": {},
+      "mape": 34.4178,
+      "val_mape": 33.9581,
+      "attn_weights": {
+        "technical": 0.5414068698883057,
+        "fundamental": 0.45859313011169434
+      },
       "total_features": 18,
       "fusion_method": "concat"
     },
     {
       "config": "05_tech_fundamental",
-      "mape": 0.0004,
-      "val_mape": null,
-      "attn_weights": {},
+      "mape": 22.4813,
+      "val_mape": 22.0483,
+      "attn_weights": {
+        "technical": 0.7330271005630493,
+        "fundamental": 0.26697295904159546
+      },
       "total_features": 18,
       "fusion_method": "multi_head"
     },
     {
       "config": "06_all_modules",
-      "mape": 0.0011,
-      "val_mape": null,
+      "mape": 15.2639,
+      "val_mape": 15.5931,
       "attn_weights": {},
-      "total_features": 51,
+      "total_features": 45,
       "fusion_method": "concat"
     },
     {
       "config": "06_all_modules",
-      "mape": 0.0011,
-      "val_mape": null,
-      "attn_weights": {},
-      "total_features": 51,
+      "mape": 5.6356,
+      "val_mape": 5.7325,
+      "attn_weights": {
+        "technical": 0.20572449266910553,
+        "correlation": 0.21781812608242035,
+        "sentiment": 0.1929098516702652,
+        "macro": 0.38354751467704773
+      },
+      "total_features": 45,
       "fusion_method": "multi_head"
     }
   ],
   "mape_table": [
     {
-      "Konfigurasyon": "05_tech_fundamental",
-      "Yontem": "concat",
-      "MAPE (%)": 0.0004,
-      "Val MAPE (%)": null,
-      "Feature Sayisi": 18
-    },
-    {
-      "Konfigurasyon": "05_tech_fundamental",
-      "Yontem": "multi_head",
-      "MAPE (%)": 0.0004,
-      "Val MAPE (%)": null,
-      "Feature Sayisi": 18
-    },
-    {
-      "Konfigurasyon": "02_tech_correlation",
-      "Yontem": "concat",
-      "MAPE (%)": 0.0009,
-      "Val MAPE (%)": null,
-      "Feature Sayisi": 16
-    },
-    {
       "Konfigurasyon": "02_tech_correlation",
       "Yontem": "multi_head",
-      "MAPE (%)": 0.0009,
-      "Val MAPE (%)": null,
-      "Feature Sayisi": 16
-    },
-    {
-      "Konfigurasyon": "03_tech_sentiment",
-      "Yontem": "concat",
-      "MAPE (%)": 0.0009,
-      "Val MAPE (%)": null,
-      "Feature Sayisi": 16
-    },
-    {
-      "Konfigurasyon": "03_tech_sentiment",
-      "Yontem": "multi_head",
-      "MAPE (%)": 0.0009,
-      "Val MAPE (%)": null,
-      "Feature Sayisi": 16
-    },
-    {
-      "Konfigurasyon": "06_all_modules",
-      "Yontem": "concat",
-      "MAPE (%)": 0.0011,
-      "Val MAPE (%)": null,
-      "Feature Sayisi": 51
-    },
-    {
-      "Konfigurasyon": "06_all_modules",
-      "Yontem": "multi_head",
-      "MAPE (%)": 0.0011,
-      "Val MAPE (%)": null,
-      "Feature Sayisi": 51
-    },
-    {
-      "Konfigurasyon": "04_tech_macro",
-      "Yontem": "concat",
-      "MAPE (%)": 0.0016,
-      "Val MAPE (%)": null,
-      "Feature Sayisi": 31
-    },
-    {
-      "Konfigurasyon": "04_tech_macro",
-      "Yontem": "multi_head",
-      "MAPE (%)": 0.0016,
-      "Val MAPE (%)": null,
-      "Feature Sayisi": 31
-    },
-    {
-      "Konfigurasyon": "01_technical_only",
-      "Yontem": "concat",
-      "MAPE (%)": 0.0018,
-      "Val MAPE (%)": null,
+      "MAPE (%)": 2.6505,
+      "Val MAPE (%)": 2.6678,
       "Feature Sayisi": 10
     },
     {
+      "Konfigurasyon": "06_all_modules",
+      "Yontem": "multi_head",
+      "MAPE (%)": 5.6356,
+      "Val MAPE (%)": 5.7325,
+      "Feature Sayisi": 45
+    },
+    {
+      "Konfigurasyon": "04_tech_macro",
+      "Yontem": "concat",
+      "MAPE (%)": 8.3585,
+      "Val MAPE (%)": 8.3749,
+      "Feature Sayisi": 31
+    },
+    {
       "Konfigurasyon": "01_technical_only",
       "Yontem": "multi_head",
-      "MAPE (%)": 0.0018,
-      "Val MAPE (%)": null,
+      "MAPE (%)": 9.5358,
+      "Val MAPE (%)": 9.4084,
+      "Feature Sayisi": 10
+    },
+    {
+      "Konfigurasyon": "04_tech_macro",
+      "Yontem": "multi_head",
+      "MAPE (%)": 11.9626,
+      "Val MAPE (%)": 12.3312,
+      "Feature Sayisi": 31
+    },
+    {
+      "Konfigurasyon": "06_all_modules",
+      "Yontem": "concat",
+      "MAPE (%)": 15.2639,
+      "Val MAPE (%)": 15.5931,
+      "Feature Sayisi": 45
+    },
+    {
+      "Konfigurasyon": "03_tech_sentiment",
+      "Yontem": "concat",
+      "MAPE (%)": 16.1331,
+      "Val MAPE (%)": 15.7388,
+      "Feature Sayisi": 16
+    },
+    {
+      "Konfigurasyon": "01_technical_only",
+      "Yontem": "concat",
+      "MAPE (%)": 20.7627,
+      "Val MAPE (%)": 21.5323,
+      "Feature Sayisi": 10
+    },
+    {
+      "Konfigurasyon": "03_tech_sentiment",
+      "Yontem": "multi_head",
+      "MAPE (%)": 21.1135,
+      "Val MAPE (%)": 21.7736,
+      "Feature Sayisi": 16
+    },
+    {
+      "Konfigurasyon": "05_tech_fundamental",
+      "Yontem": "multi_head",
+      "MAPE (%)": 22.4813,
+      "Val MAPE (%)": 22.0483,
+      "Feature Sayisi": 18
+    },
+    {
+      "Konfigurasyon": "05_tech_fundamental",
+      "Yontem": "concat",
+      "MAPE (%)": 34.4178,
+      "Val MAPE (%)": 33.9581,
+      "Feature Sayisi": 18
+    },
+    {
+      "Konfigurasyon": "02_tech_correlation",
+      "Yontem": "concat",
+      "MAPE (%)": 36.3974,
+      "Val MAPE (%)": 37.1992,
       "Feature Sayisi": 10
     }
   ],
-  "attention_weights": {},
+  "attention_weights": {
+    "technical": 0.6506792182723681,
+    "sentiment": 0.3852257505059242,
+    "macro": 0.4203411042690277,
+    "fundamental": 0.26697295904159546,
+    "correlation": 0.21781812608242035
+  },
   "model_info": {
     "concat_fusion": {
       "type": "ConcatFusion",
@@ -223,5 +253,5 @@
       "output_dim": 50
     }
   },
-  "pytorch_available": false
+  "pytorch_available": true
 }

@@ -1,13 +1,13 @@
 Konfigurasyon,Yontem,MAPE (%),Val MAPE (%),Feature Sayisi
-05_tech_fundamental,concat,0.0004,,18
-05_tech_fundamental,multi_head,0.0004,,18
-02_tech_correlation,concat,0.0009,,16
-02_tech_correlation,multi_head,0.0009,,16
-03_tech_sentiment,concat,0.0009,,16
-03_tech_sentiment,multi_head,0.0009,,16
-06_all_modules,concat,0.0011,,51
-06_all_modules,multi_head,0.0011,,51
-04_tech_macro,concat,0.0016,,31
-04_tech_macro,multi_head,0.0016,,31
-01_technical_only,concat,0.0018,,10
-01_technical_only,multi_head,0.0018,,10
+02_tech_correlation,multi_head,2.6505,2.6678,10
+06_all_modules,multi_head,5.6356,5.7325,45
+04_tech_macro,concat,8.3585,8.3749,31
+01_technical_only,multi_head,9.5358,9.4084,10
+04_tech_macro,multi_head,11.9626,12.3312,31
+06_all_modules,concat,15.2639,15.5931,45
+03_tech_sentiment,concat,16.1331,15.7388,16
+01_technical_only,concat,20.7627,21.5323,10
+03_tech_sentiment,multi_head,21.1135,21.7736,16
+05_tech_fundamental,multi_head,22.4813,22.0483,18
+05_tech_fundamental,concat,34.4178,33.9581,18
+02_tech_correlation,concat,36.3974,37.1992,10
