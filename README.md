@@ -13,6 +13,8 @@
 | `comps.py` | Comparable Company Analysis (Peer karşılaştırma) | ✅ |
 | `report_generator.py` | Renkli terminal analist raporu | ✅ |
 | `screener.py` | Paralel toplu tarayıcı + Kalite Skoru | ✅ |
+| `sentiment.py` | Analist Konsensüsü + Haber Duygu Analizi | ✅ |
+| `macro.py` | Makroekonomik Bağlam + WACC Ayarlama | ✅ |
 | `main.py` | Tek hisse CLI | ✅ |
 
 ---
@@ -165,6 +167,28 @@ Hedef şirketin sektörel peer’larıyla karşılaştırmalı göreli değerlem
 
 ---
 
+## Makroekonomik Bağlam Skoru
+
+| Gösterge | Kaynak | Açıklama |
+|----------|--------|---------|
+| Fed Funds Rate | FRED / yfinance | Politika faiz oranı |
+| 10Y Treasury | ^TNX | Uzun vadeli faiz beklentisi |
+| CPI (YoY) | FRED | Tüketici fiyat enflasyonu |
+| İşsizlik | FRED | Ekonomik sağlık göstergesi |
+| VIX | ^VIX | Piyasa volatilitési |
+| S&P500 P/E | SPY | Piyasa değerleme seviyesi |
+| USD Endeksi | DX-Y.NYB | Dolar gücü |
+| Petrol (WTI) | CL=F | Enerji maliyetleri |
+
+**Sektöre özel hassasiyet**: Her sektör için makro değişkenlerin etkisi farklı ağırlıklarla belirlenir.
+Örnek: Faiz oranı Technology sektörünü (-0.8) sert etkilerken, Financials sektörünü (+0.7) olumlu etkiler.
+
+**Skor hesaplama**: Z-score normalizasyonu × sektör hassasiyeti → Makro Ortam Skoru (-2 ile +2)
+
+**WACC ayarlama**: Makro skor × -0.20 = pp ayarlama (±0.50pp sınırlı)
+
+---
+
 ## Örnek Screener Çıktısı
 
 ```
@@ -195,6 +219,8 @@ digital_analyst/
 ├── analyzer.py          # Aşama 2 – DCF + Çarpan + Comps + Duyarlılık
 ├── comps.py             # Aşama 3 – Comparable Company Analysis
 ├── report_generator.py  # Aşama 4 – Analist raporu
+├── sentiment.py         # Aşama 4b – Konsensüs + Duygu Analizi
+├── macro.py             # Aşama 5 – Makroekonomik Bağlam
 ├── watchlist.txt        # Örnek izleme listesi
 ├── requirements.txt
 ├── __init__.py

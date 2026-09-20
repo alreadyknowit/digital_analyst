@@ -168,6 +168,11 @@ class ReportGenerator:
             "comps_fair_value":      comps.get("comps_fair_value"),
             "comps_peer_group":      comps.get("peer_group"),
             "comps_peers_used":      comps.get("peers_used", []),
+            "market_perception_score": a.get("market_perception", {}).get("market_perception_score"),
+            "market_perception_label": a.get("market_perception", {}).get("market_perception_label"),
+            "macro_score":            a.get("macro_context", {}).get("macro_score"),
+            "macro_label":            a.get("macro_context", {}).get("macro_label"),
+            "wacc_macro_adj":         a.get("wacc", {}).get("macro_adj"),
         }
 
     # ── Render orchestrator ───────────────────────────────────────────────────
@@ -183,6 +188,8 @@ class ReportGenerator:
         lines += self._section_sensitivity(c)
         lines += self._section_multiples(c)
         lines += self._section_comps(c)
+        lines += self._section_market_perception(c)
+        lines += self._section_macro_context(c)
         lines += self._section_price_bridge(c)
         lines += self._section_risks(c)
         lines += self._section_footer(c)
@@ -276,6 +283,17 @@ class ReportGenerator:
 
         for label, val in rows:
             lines.append(f"    {c.DIM}{label:<30}{c.RESET}  {c.YELLOW}{val}{c.RESET}")
+
+        # Makro WACC ayarlama bilgisi
+        macro_adj = w_data.get("macro_adj")
+        wacc_base = w_data.get("wacc_base")
+        if macro_adj is not None and macro_adj != 0:
+            adj_c = c.GREEN if macro_adj < 0 else c.RED
+            lines += [
+                "",
+                f"    {c.DIM}{'WACC Baz (makro öncesi)':<30}{c.RESET}  {c.YELLOW}{_fmt(wacc_base, suffix='%')}{c.RESET}",
+                f"    {c.DIM}{'Makro Ayarlama':<30}{c.RESET}  {adj_c}{_fmt(macro_adj, suffix=' pp', decimals=2)}{c.RESET}",
+            ]
 
         return lines
 
@@ -598,7 +616,328 @@ class ReportGenerator:
 
         return lines
 
-    # ── Bölüm 5 – Hedef Fiyat Köprüsü ────────────────────────────────────────
+    # ── Bölüm 4c – Piyasa Algısı (Konsensüs + Sentiment) ─────────────────────
+
+    def _section_market_perception(self, c) -> list[str]:
+        """Analist konsensüsü ve haber duyarlılığı bölümü."""
+        mp = self.a.get("market_perception", {})
+        if not mp:
+            return []
+
+        consensus = mp.get("consensus", {})
+        sentiment = mp.get("sentiment", {})
+        perception_score = mp.get("market_perception_score")
+        perception_label = mp.get("market_perception_label", "N/A")
+
+        # Renk belirleme
+        if perception_label in ("Bullish", "Slightly Bullish"):
+            perc_c = c.GREEN
+        elif perception_label in ("Bearish", "Slightly Bearish"):
+            perc_c = c.RED
+        else:
+            perc_c = c.YELLOW
+
+        lines = [
+            "",
+            c.BOLD + c.BLUE + "  ▌ PİYASA ALGISI (Konsensüs + Sentiment)" + c.RESET,
+            "",
+        ]
+
+        # ── Alt Bölüm: Analist Konsensüsü ──
+        lines.append(f"    {c.BOLD}{c.CYAN}◆ Analist Konsensüsü{c.RESET}")
+        lines.append("")
+
+        # Tavsiye dağılımı bar chart
+        sb = consensus.get("strong_buy", 0) or 0
+        b  = consensus.get("buy", 0) or 0
+        h  = consensus.get("hold", 0) or 0
+        s  = consensus.get("sell", 0) or 0
+        ss = consensus.get("strong_sell", 0) or 0
+        total = sb + b + h + s + ss
+
+        if total > 0:
+            bar_w = 30
+            sb_len = int(round(sb / total * bar_w))
+            b_len  = int(round(b  / total * bar_w))
+            h_len  = int(round(h  / total * bar_w))
+            s_len  = int(round(s  / total * bar_w))
+            ss_len = bar_w - sb_len - b_len - h_len - s_len
+            ss_len = max(0, ss_len)
+
+            bar = (
+                c.GREEN + c.BOLD + "█" * sb_len
+                + c.GREEN + "█" * b_len
+                + c.YELLOW + "█" * h_len
+                + c.RED + "█" * s_len
+                + c.RED + c.BOLD + "█" * ss_len
+                + c.RESET
+            )
+            lines.append(f"    {bar}")
+            lines.append(
+                f"    {c.GREEN}■ SB:{sb}{c.RESET}  "
+                f"{c.GREEN}■ B:{b}{c.RESET}  "
+                f"{c.YELLOW}■ H:{h}{c.RESET}  "
+                f"{c.RED}■ S:{s}{c.RESET}  "
+                f"{c.RED}■ SS:{ss}{c.RESET}"
+            )
+            lines.append("")
+
+        # Konsensüs detayları
+        rec_score = consensus.get("recommendation_score")
+        rec_label = consensus.get("recommendation_label", "N/A")
+        rec_c = c.GREEN if rec_score and rec_score > 0 else (c.RED if rec_score and rec_score < 0 else c.YELLOW)
+
+        rows = [
+            ("Konsensüs Hedef (Ort.)",  _fmt(consensus.get("target_mean"), prefix="$")),
+            ("Hedef Aralığı",           f"{_fmt(consensus.get('target_low'), prefix='$')} – {_fmt(consensus.get('target_high'), prefix='$')}"),
+            ("Yükseliş Potansiyeli",    _fmt(consensus.get("upside_pct"), suffix="%")),
+            ("Analist Sayısı",          str(consensus.get("analyst_count", "N/A"))),
+        ]
+        for label, val in rows:
+            lines.append(f"    {c.DIM}{label:<28}{c.RESET}  {c.WHITE}{val}{c.RESET}")
+
+        # Tavsiye skoru
+        lines.append(
+            f"    {c.DIM}{'Tavsiye Skoru':<28}{c.RESET}  "
+            f"{rec_c}{c.BOLD}{_fmt(rec_score, decimals=2)}{c.RESET}  "
+            f"{c.DIM}(-2 ile +2 arası){c.RESET}  "
+            f"{rec_c}{rec_label}{c.RESET}"
+        )
+
+        # Revizyon trendi
+        trend = consensus.get("revision_trend", "stable")
+        trend_icon = {"upgrading": "↗", "stable": "→", "downgrading": "↘"}.get(trend, "→")
+        trend_c = {"upgrading": c.GREEN, "stable": c.YELLOW, "downgrading": c.RED}.get(trend, c.GRAY)
+        lines.append(
+            f"    {c.DIM}{'Revizyon Trendi (3 ay)':<28}{c.RESET}  "
+            f"{trend_c}{c.BOLD}{trend_icon} {trend.title()}{c.RESET}"
+        )
+
+        # ── Alt Bölüm: Haber Duyarlılığı ──
+        lines += ["", f"    {c.BOLD}{c.CYAN}◆ Haber Duyarlılığı (FinBERT){c.RESET}", ""]
+
+        sent_score = sentiment.get("overall_score")
+        sent_label = sentiment.get("overall_label", "N/A")
+        sent_c = c.GREEN if sent_label == "Positive" else (c.RED if sent_label == "Negative" else c.YELLOW)
+        method = sentiment.get("method", "N/A")
+
+        pos_pct = sentiment.get("positive_pct", 0) or 0
+        neu_pct = sentiment.get("neutral_pct", 0) or 0
+        neg_pct = sentiment.get("negative_pct", 0) or 0
+
+        # Sentiment bar
+        bar_w = 30
+        pos_len = int(round(pos_pct / 100 * bar_w)) if pos_pct else 0
+        neg_len = int(round(neg_pct / 100 * bar_w)) if neg_pct else 0
+        neu_len = bar_w - pos_len - neg_len
+        neu_len = max(0, neu_len)
+
+        sent_bar = (
+            c.GREEN + "█" * pos_len
+            + c.YELLOW + "█" * neu_len
+            + c.RED + "█" * neg_len
+            + c.RESET
+        )
+        lines.append(f"    {sent_bar}")
+        lines.append(
+            f"    {c.GREEN}■ Pozitif:{pos_pct:.0f}%{c.RESET}  "
+            f"{c.YELLOW}■ Nötr:{neu_pct:.0f}%{c.RESET}  "
+            f"{c.RED}■ Negatif:{neg_pct:.0f}%{c.RESET}"
+        )
+        lines.append("")
+
+        lines.append(
+            f"    {c.DIM}{'Duyarlılık Skoru':<28}{c.RESET}  "
+            f"{sent_c}{c.BOLD}{_fmt(sent_score, decimals=2)}{c.RESET}  "
+            f"{c.DIM}(-1 ile +1 arası){c.RESET}  "
+            f"{sent_c}{sent_label}{c.RESET}"
+        )
+        lines.append(
+            f"    {c.DIM}{'Analiz Edilen Haber':<28}{c.RESET}  "
+            f"{c.WHITE}{sentiment.get('article_count', 0)}{c.RESET}  "
+            f"{c.DIM}(yöntem: {method}){c.RESET}"
+        )
+
+        # Top headlines
+        headlines = sentiment.get("headlines_analyzed", [])
+        if headlines:
+            lines += ["", f"    {c.DIM}En belirgin haberler:{c.RESET}"]
+            for h in headlines[:5]:
+                h_sent = h.get("sentiment", "neutral")
+                h_c = c.GREEN if h_sent == "positive" else (c.RED if h_sent == "negative" else c.YELLOW)
+                h_icon = "▲" if h_sent == "positive" else ("▼" if h_sent == "negative" else "─")
+                title = h.get("title", "")[:60]
+                lines.append(f"    {h_c}{h_icon}{c.RESET} {c.DIM}{title}{c.RESET}")
+
+        # ── Birleşik Piyasa Algısı ──
+        lines += [
+            "",
+            f"    {'─' * 50}",
+            f"    {c.BOLD}{'Piyasa Algısı Skoru':<28}{c.RESET}  "
+            f"{perc_c}{c.BOLD}{_fmt(perception_score, decimals=2)}{c.RESET}  "
+            f"{c.DIM}(-1 ile +1){c.RESET}  "
+            f"{perc_c}{c.BOLD}{perception_label}{c.RESET}",
+            f"    {c.DIM}(%60 Konsensüs + %40 Sentiment){c.RESET}",
+        ]
+
+        return lines
+
+    # ── Bölüm 4d – Makroekonomik Bağlam ───────────────────────────────────────
+
+    def _section_macro_context(self, c) -> list[str]:
+        """Makroekonomik ortam göstergeleri, sektör hassasiyeti ve WACC ayarlaması."""
+        mc = self.a.get("macro_context", {})
+        if not mc:
+            return []
+
+        macro_data = mc.get("macro_data", {})
+        z_scores = mc.get("z_scores", {})
+        contributions = mc.get("contributions", {})
+        macro_score = mc.get("macro_score")
+        macro_label = mc.get("macro_label", "N/A")
+        sector = mc.get("sector", "N/A")
+        wacc_adj = mc.get("wacc_adjustment_pp", 0)
+
+        # Renk belirleme
+        if macro_score is not None and macro_score >= 0.3:
+            score_c = c.GREEN
+        elif macro_score is not None and macro_score <= -0.3:
+            score_c = c.RED
+        else:
+            score_c = c.YELLOW
+
+        lines = [
+            "",
+            c.BOLD + c.BLUE + "  ▌ MAKROEKONOMIK BAĞLAM" + c.RESET,
+            "",
+            f"    {c.DIM}Sektör:{c.RESET}  {c.WHITE}{sector}{c.RESET}",
+            "",
+        ]
+
+        # ── Gösterge Tablosu ──
+        indicator_labels = {
+            "fed_funds_rate": ("Fed Funds Rate", "%"),
+            "treasury_10y":  ("10Y Treasury",   "%"),
+            "cpi_yoy":       ("CPI (YoY)",      "%"),
+            "unemployment":  ("İşsizlik",         "%"),
+            "vix":           ("VIX",            ""),
+            "sp500_pe":      ("S&P500 P/E",     "x"),
+            "usd_index":     ("USD Endeksi",    ""),
+            "oil_price":     ("Petrol (WTI)",   "$"),
+        }
+
+        lines.append(
+            f"    {c.DIM}{'Gösterge':<22} {'Değer':>10} {'Z-Skor':>10} {'Yön':>6}{c.RESET}"
+        )
+        lines.append(f"    {'\u2500'*52}")
+
+        for key, (label, unit) in indicator_labels.items():
+            val = macro_data.get(key)
+            z = z_scores.get(key)
+
+            if val is not None:
+                if unit == "$":
+                    val_str = f"${val:.2f}"
+                elif unit == "%":
+                    val_str = f"{val:.2f}%"
+                elif unit == "x":
+                    val_str = f"{val:.1f}x"
+                else:
+                    val_str = f"{val:.2f}"
+            else:
+                val_str = "N/A"
+
+            if z is not None:
+                z_str = f"{z:+.2f}"
+                if z > 0.5:
+                    z_c = c.RED
+                    icon = "▲▲"
+                elif z > 0:
+                    z_c = c.YELLOW
+                    icon = "▲"
+                elif z > -0.5:
+                    z_c = c.YELLOW
+                    icon = "▼"
+                else:
+                    z_c = c.GREEN
+                    icon = "▼▼"
+            else:
+                z_str = "N/A"
+                z_c = c.GRAY
+                icon = "─"
+
+            lines.append(
+                f"    {c.DIM}{label:<22}{c.RESET}"
+                f"{c.WHITE}{val_str:>10}{c.RESET}"
+                f"  {z_c}{z_str:>8}{c.RESET}"
+                f"  {z_c}{icon:>4}{c.RESET}"
+            )
+
+        lines.append(f"    {'\u2500'*52}")
+
+        # ── Sektör Katkı Tablosu ──
+        if contributions:
+            lines += [
+                "",
+                f"    {c.BOLD}{c.CYAN}◆ Sektör Hassasiyet Katkıları{c.RESET}",
+                "",
+            ]
+
+            contrib_labels = {
+                "interest_rate": "Faiz Oranı",
+                "inflation":     "Enflasyon",
+                "vix":           "Volatilité (VIX)",
+                "usd_strength":  "USD Gücü",
+                "oil_price":     "Petrol Fiyatı",
+                "unemployment":  "İşsizlik",
+            }
+
+            # Katkı bar chart
+            max_abs = max(abs(v) for v in contributions.values()) if contributions else 1
+            bar_w = 20
+
+            for key, value in sorted(contributions.items(), key=lambda x: abs(x[1]), reverse=True):
+                label = contrib_labels.get(key, key)
+                bar_len = int(abs(value) / max_abs * bar_w) if max_abs else 0
+                bar_c = c.GREEN if value >= 0 else c.RED
+                sign = "+" if value >= 0 else ""
+                bar = bar_c + "█" * bar_len + c.RESET
+
+                lines.append(
+                    f"    {c.DIM}{label:<18}{c.RESET}"
+                    f"  {bar_c}{sign}{value:.3f}{c.RESET}"
+                    f"  {bar}"
+                )
+
+        # ── Birleşik Skor ve WACC Ayarlaması ──
+        lines += [
+            "",
+            f"    {'\u2500' * 50}",
+            f"    {c.BOLD}{'Makro Ortam Skoru':<28}{c.RESET}  "
+            f"{score_c}{c.BOLD}{_fmt(macro_score, decimals=2)}{c.RESET}  "
+            f"{c.DIM}(-2 ile +2){c.RESET}  "
+            f"{score_c}{c.BOLD}{macro_label}{c.RESET}",
+        ]
+
+        # WACC ayarlama
+        if wacc_adj != 0:
+            adj_c = c.GREEN if wacc_adj < 0 else c.RED
+            adj_label = "düşürme" if wacc_adj < 0 else "artırma"
+            lines.append(
+                f"    {c.DIM}{'WACC Ayarlaması':<28}{c.RESET}  "
+                f"{adj_c}{c.BOLD}{wacc_adj:+.2f} pp{c.RESET}  "
+                f"{c.DIM}({adj_label}){c.RESET}"
+            )
+        else:
+            lines.append(
+                f"    {c.DIM}{'WACC Ayarlaması':<28}{c.RESET}  "
+                f"{c.YELLOW}0.00 pp{c.RESET}  "
+                f"{c.DIM}(ayarlama yok){c.RESET}"
+            )
+
+        return lines
+
+    # ── Bölüm 5 – Hedef Fiyat Köprüsü ────────────────────────────────────────────
 
     def _section_price_bridge(self, c) -> list[str]:
         a          = self.a

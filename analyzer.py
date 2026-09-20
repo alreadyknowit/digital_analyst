@@ -122,8 +122,12 @@ class Analyzer:
         """Tam analizi çalıştır ve sonuç sözlüğü döndür."""
         logger.info("▶ Analyzing %s …", self.ticker)
 
-        # 1. WACC
-        wacc_result = self._calc_wacc()
+        # 0. Makroekonomik bağlam (WACC ayarlaması için önce hesaplanmalı)
+        macro_context = self._run_macro_context()
+        macro_wacc_adj = macro_context.get("wacc_adjustment_pp", 0) if macro_context else 0
+
+        # 1. WACC (makro ayarlama dahil)
+        wacc_result = self._calc_wacc(macro_wacc_adj=macro_wacc_adj)
 
         # 2. Senaryo büyüme oranlarını veriye göre otomatik ayarla
         scenarios = self._tune_scenarios()
@@ -148,6 +152,9 @@ class Analyzer:
 
         # 7. Comps (Comparable Company Analysis)
         comps_result = self._run_comps()
+
+        # 7b. Piyasa Algısı (Konsensüs + Sentiment)
+        market_perception = self._run_market_perception()
 
         # 8. Nihai hedef fiyat (3-yönlü harmanlama)
         target_price = self._blend_target(weighted_dcf, multiples_result, comps_result)
@@ -178,11 +185,13 @@ class Analyzer:
             "dcf":              dcf_results,
             "weighted_dcf_price": _r2(weighted_dcf),
             "multiples":        multiples_result,
-            "comps":            comps_result,
-            "dcf_weight":       DCF_WEIGHT,
-            "multiples_weight": MULTIPLES_WEIGHT,
-            "comps_weight":     COMPS_WEIGHT,
-            "sensitivity":      sensitivity,
+            "comps":              comps_result,
+            "market_perception":  market_perception,
+            "macro_context":      macro_context,
+            "dcf_weight":         DCF_WEIGHT,
+            "multiples_weight":   MULTIPLES_WEIGHT,
+            "comps_weight":       COMPS_WEIGHT,
+            "sensitivity":        sensitivity,
         }
 
         logger.info(
@@ -196,13 +205,14 @@ class Analyzer:
 
     # ── 1. WACC ───────────────────────────────────────────────────────────────
 
-    def _calc_wacc(self) -> dict:
+    def _calc_wacc(self, macro_wacc_adj: float = 0.0) -> dict:
         """
-        WACC = (E/V) * Re + (D/V) * Rd * (1 – Tax Rate)
+        WACC = (E/V) * Re + (D/V) * Rd * (1 – Tax Rate) + macro_adjustment
 
         Re  : CAPM → Rf + β × ERP
         Rd  : interest expense / total debt
         E/V : equity / (equity + debt)  [market-cap ağırlıklı]
+        macro_wacc_adj : Makroekonomik ortam WACC ayarlaması (pp)
         """
         bs        = self.data.get("balance_sheet", {})
         vm        = self.data.get("valuation_multiples", {})
@@ -271,15 +281,22 @@ class Analyzer:
         e_weight = market_cap   / total_capital if total_capital else 0.8
         d_weight = total_debt   / total_capital if total_capital else 0.2
 
-        wacc = e_weight * re + d_weight * rd * (1 - tax_rate)
+        wacc_base = e_weight * re + d_weight * rd * (1 - tax_rate)
+
+        # Makroekonomik WACC ayarlaması (pp → oran)
+        macro_adj_dec = macro_wacc_adj / 100.0
+        wacc = wacc_base + macro_adj_dec
 
         logger.info(
-            "WACC: %.2f%% | Re: %.2f%% | Rd: %.2f%% | β: %.2f | Rf: %.2f%%",
-            wacc * 100, re * 100, rd * 100, beta, rf * 100,
+            "WACC: %.2f%% (baz: %.2f%% + makro: %+.2f pp) | Re: %.2f%% | Rd: %.2f%% | β: %.2f | Rf: %.2f%%",
+            wacc * 100, wacc_base * 100, macro_wacc_adj,
+            re * 100, rd * 100, beta, rf * 100,
         )
 
         return {
             "wacc":       _r2(wacc * 100),    # %
+            "wacc_base":  _r2(wacc_base * 100),  # makro ayarlama öncesi %
+            "macro_adj":  _r2(macro_wacc_adj),    # makro ayarlama (pp)
             "re":         _r2(re  * 100),
             "rd":         _r2(rd  * 100),
             "rf":         _r2(rf  * 100),
@@ -629,6 +646,29 @@ class Analyzer:
                 "peers_used": [], "peer_group": "Error",
                 "peer_count": 0, "comps_fair_value": None,
             }
+
+    # ── 6c. Piyasa Algısı (Konsensüs + Sentiment) ────────────────────────────
+
+    def _run_market_perception(self) -> dict:
+        """Analist konsensüsü ve haber sentiment analizini çalıştır."""
+        try:
+            from sentiment import compute_market_perception
+            return compute_market_perception(self.data, self.ticker)
+        except Exception as e:
+            logger.error("Market perception analysis failed: %s", e)
+            return {}
+
+    # ── 6d. Makroekonomik Bağlam ──────────────────────────────────────────────
+
+    def _run_macro_context(self) -> dict:
+        """Makroekonomik ortam analizini çalıştır."""
+        try:
+            from macro import compute_macro_context
+            sector = self.data.get("company_info", {}).get("sector", "Technology")
+            return compute_macro_context(sector)
+        except Exception as e:
+            logger.error("Macro context analysis failed: %s", e)
+            return {}
 
     # ── 7. Hedef fiyat harmanlama ─────────────────────────────────────────────
 
