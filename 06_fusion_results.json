@@ -1,0 +1,227 @@
+{
+  "run_timestamp": "2026-09-20T16:34:53.669353",
+  "tickers": [
+    "AAPL",
+    "MSFT",
+    "GOOGL",
+    "AMZN",
+    "NVDA",
+    "META"
+  ],
+  "sector": "Technology",
+  "feature_counts": {
+    "technical": 10,
+    "correlation": 6,
+    "sentiment": 6,
+    "macro": 21,
+    "fundamental": 8
+  },
+  "feature_total": 51,
+  "ablation_results": [
+    {
+      "config": "01_technical_only",
+      "mape": 0.0018,
+      "val_mape": null,
+      "attn_weights": {},
+      "total_features": 10,
+      "fusion_method": "concat"
+    },
+    {
+      "config": "01_technical_only",
+      "mape": 0.0018,
+      "val_mape": null,
+      "attn_weights": {},
+      "total_features": 10,
+      "fusion_method": "multi_head"
+    },
+    {
+      "config": "02_tech_correlation",
+      "mape": 0.0009,
+      "val_mape": null,
+      "attn_weights": {},
+      "total_features": 16,
+      "fusion_method": "concat"
+    },
+    {
+      "config": "02_tech_correlation",
+      "mape": 0.0009,
+      "val_mape": null,
+      "attn_weights": {},
+      "total_features": 16,
+      "fusion_method": "multi_head"
+    },
+    {
+      "config": "03_tech_sentiment",
+      "mape": 0.0009,
+      "val_mape": null,
+      "attn_weights": {},
+      "total_features": 16,
+      "fusion_method": "concat"
+    },
+    {
+      "config": "03_tech_sentiment",
+      "mape": 0.0009,
+      "val_mape": null,
+      "attn_weights": {},
+      "total_features": 16,
+      "fusion_method": "multi_head"
+    },
+    {
+      "config": "04_tech_macro",
+      "mape": 0.0016,
+      "val_mape": null,
+      "attn_weights": {},
+      "total_features": 31,
+      "fusion_method": "concat"
+    },
+    {
+      "config": "04_tech_macro",
+      "mape": 0.0016,
+      "val_mape": null,
+      "attn_weights": {},
+      "total_features": 31,
+      "fusion_method": "multi_head"
+    },
+    {
+      "config": "05_tech_fundamental",
+      "mape": 0.0004,
+      "val_mape": null,
+      "attn_weights": {},
+      "total_features": 18,
+      "fusion_method": "concat"
+    },
+    {
+      "config": "05_tech_fundamental",
+      "mape": 0.0004,
+      "val_mape": null,
+      "attn_weights": {},
+      "total_features": 18,
+      "fusion_method": "multi_head"
+    },
+    {
+      "config": "06_all_modules",
+      "mape": 0.0011,
+      "val_mape": null,
+      "attn_weights": {},
+      "total_features": 51,
+      "fusion_method": "concat"
+    },
+    {
+      "config": "06_all_modules",
+      "mape": 0.0011,
+      "val_mape": null,
+      "attn_weights": {},
+      "total_features": 51,
+      "fusion_method": "multi_head"
+    }
+  ],
+  "mape_table": [
+    {
+      "Konfigurasyon": "05_tech_fundamental",
+      "Yontem": "concat",
+      "MAPE (%)": 0.0004,
+      "Val MAPE (%)": null,
+      "Feature Sayisi": 18
+    },
+    {
+      "Konfigurasyon": "05_tech_fundamental",
+      "Yontem": "multi_head",
+      "MAPE (%)": 0.0004,
+      "Val MAPE (%)": null,
+      "Feature Sayisi": 18
+    },
+    {
+      "Konfigurasyon": "02_tech_correlation",
+      "Yontem": "concat",
+      "MAPE (%)": 0.0009,
+      "Val MAPE (%)": null,
+      "Feature Sayisi": 16
+    },
+    {
+      "Konfigurasyon": "02_tech_correlation",
+      "Yontem": "multi_head",
+      "MAPE (%)": 0.0009,
+      "Val MAPE (%)": null,
+      "Feature Sayisi": 16
+    },
+    {
+      "Konfigurasyon": "03_tech_sentiment",
+      "Yontem": "concat",
+      "MAPE (%)": 0.0009,
+      "Val MAPE (%)": null,
+      "Feature Sayisi": 16
+    },
+    {
+      "Konfigurasyon": "03_tech_sentiment",
+      "Yontem": "multi_head",
+      "MAPE (%)": 0.0009,
+      "Val MAPE (%)": null,
+      "Feature Sayisi": 16
+    },
+    {
+      "Konfigurasyon": "06_all_modules",
+      "Yontem": "concat",
+      "MAPE (%)": 0.0011,
+      "Val MAPE (%)": null,
+      "Feature Sayisi": 51
+    },
+    {
+      "Konfigurasyon": "06_all_modules",
+      "Yontem": "multi_head",
+      "MAPE (%)": 0.0011,
+      "Val MAPE (%)": null,
+      "Feature Sayisi": 51
+    },
+    {
+      "Konfigurasyon": "04_tech_macro",
+      "Yontem": "concat",
+      "MAPE (%)": 0.0016,
+      "Val MAPE (%)": null,
+      "Feature Sayisi": 31
+    },
+    {
+      "Konfigurasyon": "04_tech_macro",
+      "Yontem": "multi_head",
+      "MAPE (%)": 0.0016,
+      "Val MAPE (%)": null,
+      "Feature Sayisi": 31
+    },
+    {
+      "Konfigurasyon": "01_technical_only",
+      "Yontem": "concat",
+      "MAPE (%)": 0.0018,
+      "Val MAPE (%)": null,
+      "Feature Sayisi": 10
+    },
+    {
+      "Konfigurasyon": "01_technical_only",
+      "Yontem": "multi_head",
+      "MAPE (%)": 0.0018,
+      "Val MAPE (%)": null,
+      "Feature Sayisi": 10
+    }
+  ],
+  "attention_weights": {},
+  "model_info": {
+    "concat_fusion": {
+      "type": "ConcatFusion",
+      "architecture": "Linear(D->256) -> LayerNorm -> ReLU -> Dropout -> Linear(256->128) -> Tanh",
+      "output_dim": 128
+    },
+    "multi_head_fusion": {
+      "type": "MultiHeadFusion",
+      "architecture": "[CLS]+[module_tokens] -> MHA(d=64, heads=4) -> CLS out -> Linear(->128)",
+      "d_model": 64,
+      "n_heads": 4,
+      "output_dim": 128
+    },
+    "fused_generator": {
+      "type": "FusedGenerator",
+      "description": "noise[100] || context[128] -> BatchNorm -> LeakyReLU -> output[50]",
+      "noise_dim": 100,
+      "context_dim": 128,
+      "output_dim": 50
+    }
+  },
+  "pytorch_available": false
+}
