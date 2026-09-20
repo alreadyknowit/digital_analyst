@@ -57,7 +57,26 @@ def run_ticker(ticker: str, args: argparse.Namespace) -> dict | None:
                 rg.save(path)
             print(f"\n  💾 Rapor kaydedildi → {path.resolve()}\n")
 
-        return rg.to_dict()
+        out = rg.to_dict()
+
+        # ── Bölüm 5: Fundamental features (opsiyonel) ──────────────────
+        if getattr(args, "fundamental", False):
+            try:
+                from fundamental_module import get_fundamental_features
+                features = get_fundamental_features(ticker, data)
+                out["fundamental_features"] = features
+                if not args.json:
+                    print("\n  📊 Fundamental Features")
+                    print("  " + "─" * 50)
+                    for k, v in features.items():
+                        if k not in ("date", "ticker"):
+                            print(f"  {k:<20} {v}")
+                    print()
+            except Exception as fe:
+                print(f"  ⚠ Fundamental module hatası ({ticker}): {fe}",
+                      file=sys.stderr)
+
+        return out
 
     except Exception as e:
         print(f"\n  ❌ {ticker} analizi başarısız: {e}\n", file=sys.stderr)
@@ -85,6 +104,16 @@ def main():
         action="store_true",
         help="JSON formatında çıktı ver",
     )
+    parser.add_argument(
+        "--fundamental", "-f",
+        action="store_true",
+        help="Fundamental features (Bölüm 5) hesapla ve ekle",
+    )
+    parser.add_argument(
+        "--csv",
+        action="store_true",
+        help="Tüm ticker'lar için features_05_fundamental.csv üret (output/ klasörüne)",
+    )
 
     args = parser.parse_args()
 
@@ -102,6 +131,15 @@ def main():
         r = run_ticker(ticker.upper().strip(), save_arg)
         if r:
             results.append(r)
+
+    # ── CSV modu: fundamental features toplu üretim ───────────────────
+    if getattr(args, "csv", False):
+        try:
+            from fundamental_module import build_features_csv
+            csv_path = build_features_csv(args.tickers)
+            print(f"\n  📄 CSV kaydedildi → {csv_path}\n")
+        except Exception as ce:
+            print(f"  ⚠ CSV üretimi başarısız: {ce}", file=sys.stderr)
 
     # Birden fazla ticker → özet tablo
     if len(results) > 1:
