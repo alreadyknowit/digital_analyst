@@ -14,8 +14,11 @@ yfinance v1.3+ API notu:
   Erişim: df.loc["Total Revenue", col]  (NOT df.get("Total Revenue", {}).get(col))
 """
 
+import json
 import logging
+import os
 import warnings
+from pathlib import Path
 from typing import Any
 
 import numpy as np
@@ -111,6 +114,22 @@ def _fmt_b(value: Any) -> str | None:
     return f"${v:,.0f}"
 
 
+class _Encoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, (np.integer,)):
+            return int(obj)
+        if isinstance(obj, (np.floating,)):
+            import math
+            if math.isnan(obj) or math.isinf(obj):
+                return None
+            return float(obj)
+        if isinstance(obj, np.ndarray):
+            return obj.tolist()
+        if isinstance(obj, pd.Timestamp):
+            return str(obj)
+        return super().default(obj)
+
+
 # ─── Main collector class ─────────────────────────────────────────────────────
 
 class FinancialDataCollector:
@@ -187,6 +206,16 @@ class FinancialDataCollector:
         if self._mock_fields:
             logger.warning("⚠ Mock/missing data for: %s", ", ".join(self._mock_fields))
         data["mock_fields"] = self._mock_fields
+
+        output_dir = Path(__file__).parent / "output"
+        output_dir.mkdir(parents=True, exist_ok=True)
+        save_path = output_dir / f"{self.ticker_symbol}_raw_data.json"
+        try:
+            with open(save_path, "w", encoding="utf-8") as f:
+                json.dump(data, f, indent=2, cls=_Encoder)
+            logger.info("Raw data saved to %s", save_path)
+        except Exception as e:
+            logger.error("Failed to save raw data: %s", e)
 
         logger.info("✔ Data collection complete for %s", self.ticker_symbol)
         return data
